@@ -2,7 +2,8 @@ import string
 import re
 from random import choice
 
-hangman_strings = [
+MAX_GUESSES = 6
+HANGMAN_STRINGS = [
             """
                     -----
                     |   |
@@ -73,38 +74,38 @@ def random_word():
     words = [word.strip() for word in dictionary]
     return choice(words)
 
-def find_all(needle, haystack):
-    return [m.start() for m in re.finditer(needle, haystack)]
+def get_progress(correct, word):
+    return "".join([let if let in correct else "_" for let in word])
 
-def update_progress(guess):
-    for i in find_all(guess, word):
-        progress[i] = guess
+if __name__ == "__main__":
+    incorrect = []
+    correct = []
+    gameover = False
 
-word = random_word()
-word = "hacker"
-progress = list('_' * len(word))
-bad_guesses = []
-max_guesses = 6
-gameover = False
+    word = random_word()
 
-while not gameover:
-    print hangman_strings[len(bad_guesses)]
-    print "Incorrect guesses: %s" % ", ".join(bad_guesses)
-    print "Progress: " + "".join(progress)
-    guess = raw_input('Guess a letter: ').lower()
-    if len(guess) > 1 or guess not in string.lowercase:
-        print "Please guess a letter"
-    elif guess in bad_guesses or guess in progress:
-        print "You've already guessed %s" % guess
-    elif guess in word:
-        update_progress(guess)
-        if "_" not in progress:
-            print "You won! The word was %s" % word
-            gameover = True
-    else:
-        bad_guesses.append(guess)
-        print "Sorry, the letter %s is not in the word!" % guess
-        if len(bad_guesses) >= max_guesses:
+    while not gameover:
+        print HANGMAN_STRINGS[len(incorrect)]
+        print "Incorrect guesses: %s" % ", ".join(incorrect)
+        print "Progress: %s" % get_progress(correct, word)
+
+        while True:
+            guess = raw_input('Guess a letter: ').lower()
+            if len(guess) > 1 or guess not in string.lowercase:
+                print "Please guess a letter"
+            elif guess in correct + incorrect:
+                print "You've already guessed %s" % guess
+            else:
+                break
+
+        if guess in word:
+            correct.append(guess)
+        else:
+            incorrect.append(guess)
+
+        if len(incorrect) >= MAX_GUESSES:
             print "You lose. The word was %s" % word
             gameover = True
-
+        if set(correct) == set(word):
+            print "You won! The word was %s" % word
+            gameover = True
