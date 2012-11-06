@@ -1,5 +1,72 @@
+import string
 import re
 from random import choice
+
+hangman_strings = [
+            """
+                    -----
+                    |   |
+                        |
+                        |
+                        |
+                        |
+                    ---------
+            """,
+            """
+                    -----
+                    |   |
+                    O   |
+                        |
+                        |
+                        |
+                    ---------
+            """,
+
+            """
+                    -----
+                    |   |
+                    O   |
+                    |   |
+                        |
+                        |
+                    ---------
+            """,
+            """
+                    -----
+                    |   |
+                    O   |
+                    |\  |
+                        |
+                        |
+                    ---------
+            """,
+            """
+                    -----
+                    |   |
+                    O   |
+                   /|\  |
+                        |
+                        |
+                    ---------
+            """,
+            """
+                    -----
+                    |   |
+                    O   |
+                   /|\  |
+                     \  |
+                        |
+                    ---------
+            """,
+            """
+                    -----
+                    |   |
+                    O   |
+                   /|\  |
+                   / \  |
+                        |
+                    ---------
+            """]
 
 def random_word():
     dictionary = open('dictionary.txt', 'r').readlines()
@@ -14,15 +81,20 @@ def update_progress(guess):
         progress[i] = guess
 
 word = random_word()
+word = "hacker"
 progress = list('_' * len(word))
 bad_guesses = []
 max_guesses = 6
 gameover = False
 
 while not gameover:
-    print "".join(progress)
+    print hangman_strings[len(bad_guesses)]
+    print "Incorrect guesses: %s" % ", ".join(bad_guesses)
+    print "Progress: " + "".join(progress)
     guess = raw_input('Guess a letter: ').lower()
-    if guess in bad_guesses or guess in progress:
+    if len(guess) > 1 or guess not in string.lowercase:
+        print "Please guess a letter"
+    elif guess in bad_guesses or guess in progress:
         print "You've already guessed %s" % guess
     elif guess in word:
         update_progress(guess)
