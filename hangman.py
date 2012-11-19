@@ -1,118 +1,134 @@
 import string
 from random import choice
 
-MAX_GUESSES = 6
-HANGMAN_STRINGS = [
-            """
-                    -----
-                    |   |
-                        |
-                        |
-                        |
-                        |
-                    ---------
-            """,
-            """
-                    -----
-                    |   |
-                    O   |
-                        |
-                        |
-                        |
-                    ---------
-            """,
+class Game():
+    MAX_GUESSES = 6
+    HANGMAN_STRINGS = [
+"""
+            -----
+            |   |
+                |
+                |
+                |
+                |
+            ---------
+""",
+"""
+            -----
+            |   |
+            O   |
+                |
+                |
+                |
+            ---------
+""",
 
-            """
-                    -----
-                    |   |
-                    O   |
-                    |   |
-                        |
-                        |
-                    ---------
-            """,
-            """
-                    -----
-                    |   |
-                    O   |
-                    |\  |
-                        |
-                        |
-                    ---------
-            """,
-            """
-                    -----
-                    |   |
-                    O   |
-                   /|\  |
-                        |
-                        |
-                    ---------
-            """,
-            """
-                    -----
-                    |   |
-                    O   |
-                   /|\  |
-                     \  |
-                        |
-                    ---------
-            """,
-            """
-                    -----
-                    |   |
-                    O   |
-                   /|\  |
-                   / \  |
-                        |
-                    ---------
-            """]
+"""
+            -----
+            |   |
+            O   |
+            |   |
+                |
+                |
+            ---------
+""",
+"""
+            -----
+            |   |
+            O   |
+            |\  |
+                |
+                |
+            ---------
+""",
+"""
+            -----
+            |   |
+            O   |
+           /|\  |
+                |
+                |
+            ---------
+""",
+"""
+            -----
+            |   |
+            O   |
+           /|\  |
+             \  |
+                |
+            ---------
+""",
+"""
+            -----
+            |   |
+            O   |
+           /|\  |
+           / \  |
+                |
+            ---------
+"""]
 
-def random_word():
-    dictionary = open('dictionary.txt', 'r').readlines()
-    words = [word.strip() for word in dictionary]
-    return choice(words)
+    def __init__(self):
+        self.word = self.random_word()
+        self.incorrect = []
+        self.correct = []
+        self.progress = self.get_progress()
+        self.gameover = False
 
-def get_progress(correct, word):
-    return "".join([let if let in correct else "_" for let in word])
+    def random_word(self):
+        dictionary = open('dictionary.txt', 'r').readlines()
+        words = [word.strip() for word in dictionary]
+        return choice(words)
 
-def print_game(num_incorrect):
-    print '=' * 45
-    print HANGMAN_STRINGS[num_incorrect]
-    if num_incorrect < MAX_GUESSES:
-        print "Incorrect guesses: %s" % ", ".join(incorrect)
-        print "Progress: %s" % get_progress(correct, word)
-    else:
-        print "You lose. The word was %s" % word
+    def get_progress(self):
+        return "".join([let if let in self.correct else "_" for let in self.word])
+
+    def already_guessed(self, guess):
+        return guess in self.correct + self.incorrect
+
+    def guess_letter(self, guess):
+        if guess in self.word:
+            self.correct.append(guess)
+        else:
+            self.incorrect.append(guess)
+
+    def game_over(self):
+        if len(self.incorrect) >= Game.MAX_GUESSES:
+            self.gameover = True
+            return True
+        return False
+
+    def game_won(self):
+        if set(self.correct) == set(self.word):
+            self.gameover = True
+            return True
+        return False
+
+    def game_string(self):
+        result = "=" * 30 + "\n"
+        result += Game.HANGMAN_STRINGS[len(self.incorrect)]
+        if self.game_won():
+            result += "\nYou won! The word was %r" % self.word
+        elif len(self.incorrect) < Game.MAX_GUESSES:
+            result += "\nIncorrect guesses: %s" % ", ".join(self.incorrect)
+            result += "\nProgress: %s" % self.get_progress()
+        elif self.game_over():
+            result += "\nYou lose. The word was %s" % self.word
+        return result
 
 if __name__ == "__main__":
-    incorrect = []
-    correct = []
-    gameover = False
-
-    word = random_word()
-
-    while not gameover:
-
-        print_game(len(incorrect))
-
+    game = Game()
+    print game.game_string()
+    while not game.gameover:
         while True:
             guess = raw_input("Guess a letter: ").lower()
             if len(guess) > 1 or guess not in string.lowercase:
                 print "Please guess a letter."
-            elif guess in correct + incorrect:
+            elif game.already_guessed(guess):
                 print "You've already guessed %r." % guess
             else:
                 break
 
-        if guess in word:
-            correct.append(guess)
-        else:
-            incorrect.append(guess)
-
-        if len(incorrect) >= MAX_GUESSES:
-            print_game(MAX_GUESSES)
-            gameover = True
-        if set(correct) == set(word):
-            print "You won! The word was %s" % word
-            gameover = True
+        game.guess_letter(guess)
+        print game.game_string()
