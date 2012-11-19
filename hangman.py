@@ -1,5 +1,4 @@
 import string
-import re
 from random import choice
 
 MAX_GUESSES = 6
@@ -77,6 +76,15 @@ def random_word():
 def get_progress(correct, word):
     return "".join([let if let in correct else "_" for let in word])
 
+def print_game(num_incorrect):
+    print '=' * 45
+    print HANGMAN_STRINGS[num_incorrect]
+    if num_incorrect < MAX_GUESSES:
+        print "Incorrect guesses: %s" % ", ".join(incorrect)
+        print "Progress: %s" % get_progress(correct, word)
+    else:
+        print "You lose. The word was %s" % word
+
 if __name__ == "__main__":
     incorrect = []
     correct = []
@@ -85,16 +93,15 @@ if __name__ == "__main__":
     word = random_word()
 
     while not gameover:
-        print HANGMAN_STRINGS[len(incorrect)]
-        print "Incorrect guesses: %s" % ", ".join(incorrect)
-        print "Progress: %s" % get_progress(correct, word)
+
+        print_game(len(incorrect))
 
         while True:
-            guess = raw_input('Guess a letter: ').lower()
+            guess = raw_input("Guess a letter: ").lower()
             if len(guess) > 1 or guess not in string.lowercase:
-                print "Please guess a letter"
+                print "Please guess a letter."
             elif guess in correct + incorrect:
-                print "You've already guessed %s" % guess
+                print "You've already guessed %r." % guess
             else:
                 break
 
@@ -104,7 +111,7 @@ if __name__ == "__main__":
             incorrect.append(guess)
 
         if len(incorrect) >= MAX_GUESSES:
-            print "You lose. The word was %s" % word
+            print_game(MAX_GUESSES)
             gameover = True
         if set(correct) == set(word):
             print "You won! The word was %s" % word
