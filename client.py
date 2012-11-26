@@ -1,10 +1,17 @@
 import socket
 import sys
 import string
-import pdb
 
 HOST = sys.argv.pop() if len(sys.argv) == 3 else "127.0.0.1" 
 PORT = 8888
+
+EOM = "::"
+WAITING_FOR_WELCOME = 0
+WAITING_FOR_BOARD = 1
+WAITING_FOR_GAME_STATUS = 2
+WAITING_FOR_USER_INPUT = 3
+WAITING_TO_PLAY_AGAIN = 4
+GAME_OVER = 5
 
 def make_socket():
     try:
@@ -12,17 +19,8 @@ def make_socket():
     except socket.error, msg:
         print "Client: Failed to create socket. Error code: " + str(msg[0]) + ", Error message: " + msg[1]
         sys.exit()
-    #print "Client: Socket created."
     return c
 
-WAITING_FOR_BOARD = 0
-WAITING_FOR_GAME_STATUS = 1
-WAITING_FOR_USER_INPUT = 2
-WAITING_TO_PLAY_AGAIN = 3
-WAITING_FOR_WELCOME = 4
-GAME_OVER = 5
-
-EOM = "::"
 
 def read_msg(data):
     if len(data) == 0:
@@ -73,5 +71,5 @@ if __name__ == "__main__":
             else:
                 current_state = GAME_OVER
                 sock.sendall("quit" + EOM)
-                print "Thanks for playing"
+                print "Thanks for playing!"
     sock.close()

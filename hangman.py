@@ -93,42 +93,41 @@ class Game():
         else:
             self.incorrect.append(guess)
 
-    def game_over(self):
+    def game_status(self):
         if len(self.incorrect) >= Game.MAX_GUESSES:
             self.gameover = True
-            return True
-        return False
-
-    def game_won(self):
+            return "\nYou lose. The word was %r." % self.word
         if set(self.correct) == set(self.word):
             self.gameover = True
-            return True
-        return False
+            return "\nYou won!"
+        return "" 
 
-    def game_string(self):
-        result = "=" * 30 + "\n"
+    def game_string(self, status=""):
+        result = "\n" + "=" * 30 + "\n"
         result += Game.HANGMAN_STRINGS[len(self.incorrect)]
-        if self.game_won():
-            result += "\nYou won! The word was %r" % self.word
-        elif len(self.incorrect) < Game.MAX_GUESSES:
-            result += "\nIncorrect guesses: %s" % ", ".join(self.incorrect)
-            result += "\nProgress: %s" % self.get_progress()
-        elif self.game_over():
-            result += "\nYou lose. The word was %s" % self.word
+        result += "\nIncorrect guesses: %s" % ", ".join(self.incorrect)
+        result += "\nProgress: %s" % self.get_progress()
+        result += status
         return result
 
 if __name__ == "__main__":
-    game = Game()
-    print game.game_string()
-    while not game.gameover:
-        while True:
-            guess = raw_input("Guess a letter: ").lower()
-            if len(guess) > 1 or guess not in string.lowercase:
-                print "Please guess a letter."
-            elif game.already_guessed(guess):
-                print "You've already guessed %r." % guess
-            else:
-                break
-
-        game.guess_letter(guess)
+    keepGoing = True
+    while keepGoing:
+        game = Game()
         print game.game_string()
+        while not game.gameover:
+            while True:
+                guess = raw_input("Guess a letter: ").lower()
+                if len(guess) > 1 or guess not in string.lowercase:
+                    print "Please guess a letter."
+                elif game.already_guessed(guess):
+                    print "You've already guessed %r." % guess
+                else:
+                    break
+            game.guess_letter(guess)
+            status = game.game_status()
+            print game.game_string(status)
+        play_again = raw_input("Play again? (y/n): ").lower()
+        if "n" in play_again:
+            keepGoing = False
+    print "Thanks for playing!" 

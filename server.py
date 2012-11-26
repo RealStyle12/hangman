@@ -3,6 +3,13 @@ import sys
 from thread import *
 from hangman import Game
 
+EOM = "::"
+WAITING_FOR_CONN = 1
+WAITING_FOR_MOVE = 2
+WAITING_TO_PLAY_AGAIN = 3
+WAITING_TO_START_GAME = 4
+GAME_OVER = 5
+
 def make_socket():
     HOST = sys.argv.pop() if len(sys.argv) == 3 else "127.0.0.1" 
     PORT = 8888
@@ -15,8 +22,6 @@ def make_socket():
         sys.exit()
     s.listen(1)
     return s
-
-EOM = "::"
 
 def read_msg(data):
     if len(data) == 0:
@@ -34,8 +39,7 @@ def client_thread(conn):
         if current_state is WAITING_TO_START_GAME:
             game = Game()
             conn.sendall("WELCOME TO HANGMAN" + EOM)
-            conn.sendall(game.game_string() + EOM)
-            conn.sendall(str(game.gameover) + EOM)
+            conn.sendall(game.game_string() + EOM + str(game.gameover) + EOM)
             current_state = WAITING_FOR_MOVE
         elif current_state is WAITING_FOR_MOVE:
             data += conn.recv(1024)
@@ -45,11 +49,11 @@ def client_thread(conn):
                     reply = "You've already guessed %r." % letter
                 else:
                     game.guess_letter(letter)
-                    reply = game.game_string()
+                    status = game.game_status()
+                    reply = game.game_string(status)
                     if game.gameover:
                         current_state = WAITING_TO_PLAY_AGAIN
-                conn.sendall(reply + EOM)
-                conn.sendall(str(game.gameover) + EOM)
+                conn.sendall(reply + EOM + str(game.gameover) + EOM)
         elif current_state is WAITING_TO_PLAY_AGAIN:
             data += conn.recv(1024)
             play_again, data = read_msg(data)
@@ -58,12 +62,6 @@ def client_thread(conn):
             elif play_again == "quit":
                 current_state = GAME_OVER
     conn.close()
-
-WAITING_FOR_CONN = 1
-WAITING_FOR_MOVE = 2
-WAITING_TO_PLAY_AGAIN = 3
-WAITING_TO_START_GAME = 4
-GAME_OVER = 5
 
 if __name__ == "__main__":
     sock = make_socket()
