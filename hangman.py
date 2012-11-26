@@ -110,20 +110,24 @@ class Game():
         result += status
         return result
 
+def valid_guess(game):
+    while True:
+        guess = raw_input("Guess a letter: ").lower()
+        if len(guess) > 1 or guess not in string.lowercase:
+            print "Please guess a letter."
+        elif game.already_guessed(guess):
+            print "You've already guessed %r." % guess
+        else:
+           return guess
+
 if __name__ == "__main__":
     keepGoing = True
     while keepGoing:
         game = Game()
+        print "WELCOME TO HANGMAN"
         print game.game_string()
         while not game.gameover:
-            while True:
-                guess = raw_input("Guess a letter: ").lower()
-                if len(guess) > 1 or guess not in string.lowercase:
-                    print "Please guess a letter."
-                elif game.already_guessed(guess):
-                    print "You've already guessed %r." % guess
-                else:
-                    break
+            guess = valid_guess(game)
             game.guess_letter(guess)
             status = game.game_status()
             print game.game_string(status)

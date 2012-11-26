@@ -32,28 +32,33 @@ def read_msg(data):
     data = data[EOM_index + len(EOM):]
     return (msg, data)
 
+def init_game(conn):
+    game = Game()
+    conn.sendall("WELCOME TO HANGMAN" + EOM)
+    conn.sendall(game.game_string() + EOM + str(game.gameover) + EOM)
+    return game
+
+def process_letter(game, letter):
+    if game.already_guessed(letter):
+        return "You've already guessed %r." % letter
+    else:
+        game.guess_letter(letter)
+        return game.game_string(game.game_status())
+
 def client_thread(conn):
     current_state = WAITING_TO_START_GAME
     data = ""
     while current_state is not GAME_OVER:
         if current_state is WAITING_TO_START_GAME:
-            game = Game()
-            conn.sendall("WELCOME TO HANGMAN" + EOM)
-            conn.sendall(game.game_string() + EOM + str(game.gameover) + EOM)
+            game = init_game(conn)
             current_state = WAITING_FOR_MOVE
         elif current_state is WAITING_FOR_MOVE:
             data += conn.recv(1024)
             letter, data = read_msg(data)
-            if letter:
-                if game.already_guessed(letter):
-                    reply = "You've already guessed %r." % letter
-                else:
-                    game.guess_letter(letter)
-                    status = game.game_status()
-                    reply = game.game_string(status)
-                    if game.gameover:
-                        current_state = WAITING_TO_PLAY_AGAIN
-                conn.sendall(reply + EOM + str(game.gameover) + EOM)
+            reply = process_letter(game, letter)
+            if game.gameover:
+                current_state = WAITING_TO_PLAY_AGAIN
+            conn.sendall(reply + EOM + str(game.gameover) + EOM)
         elif current_state is WAITING_TO_PLAY_AGAIN:
             data += conn.recv(1024)
             play_again, data = read_msg(data)
