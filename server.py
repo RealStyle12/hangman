@@ -11,7 +11,7 @@ WAITING_TO_START_GAME = 4
 GAME_OVER = 5
 
 def make_socket():
-    HOST = sys.argv.pop() if len(sys.argv) == 3 else "127.0.0.1" 
+    HOST = sys.argv.pop() if len(sys.argv) == 2 else "127.0.0.1" 
     PORT = 8888
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -27,16 +27,9 @@ def make_socket():
 def init_game(messenger):
     game = Game()
     messenger.send("WELCOME TO HANGMAN")
-    messenger.send(game.game_string())
+    messenger.send(str(game))
     messenger.send(str(game.gameover))
     return game
-
-def process_letter(game, letter):
-    if game.already_guessed(letter):
-        return "You've already guessed %r." % letter
-    else:
-        game.guess_letter(letter)
-        return game.game_string(game.game_status())
 
 def client_thread(conn):
     current_state = WAITING_TO_START_GAME
@@ -47,7 +40,12 @@ def client_thread(conn):
             current_state = WAITING_FOR_MOVE
         elif current_state is WAITING_FOR_MOVE:
             letter = messenger.read()
-            reply = process_letter(game, letter)
+            if game.already_guessed(letter):
+                reply = "You've already guessed %r." % letter
+            else:
+                game.guess_letter(letter)
+                reply = str(game)
+
             if game.gameover:
                 current_state = WAITING_TO_PLAY_AGAIN
             messenger.send(reply)

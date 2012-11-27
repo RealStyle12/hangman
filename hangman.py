@@ -93,7 +93,7 @@ class Game():
         else:
             self.incorrect.append(guess)
 
-    def game_status(self):
+    def status(self):
         if len(self.incorrect) >= Game.MAX_GUESSES:
             self.gameover = True
             return "\nYou lose. The word was %r." % self.word
@@ -102,15 +102,15 @@ class Game():
             return "\nYou won!"
         return "" 
 
-    def game_string(self, status=""):
+    def __str__(self):
         result = "\n" + "=" * 30 + "\n"
         result += Game.HANGMAN_STRINGS[len(self.incorrect)]
         result += "\nIncorrect guesses: %s" % ", ".join(self.incorrect)
         result += "\nProgress: %s" % self.get_progress()
-        result += status
+        result += self.status()
         return result
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 def valid_guess(game):
     while True:
         guess = raw_input("Guess a letter: ").lower()
@@ -130,8 +130,7 @@ if __name__ == "__main__":
         while not game.gameover:
             guess = valid_guess(game)
             game.guess_letter(guess)
-            status = game.game_status()
-            print game.game_string(status)
+            print game.game_string()
         play_again = raw_input("Play again? (y/n): ").lower()
         if "n" in play_again:
             keepGoing = False
