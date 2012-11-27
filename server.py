@@ -18,7 +18,8 @@ def make_socket():
     try:
         s.bind((HOST, PORT))
     except socket.error, msg:
-        print 'Bind failed. Error Code: ' + str(msg[0]) + ', Error Message: ' + msg[1]
+        print 'Bind failed. Error Code: ' + str(msg[0]) \
+                + ', Error Message: ' + msg[1]
         sys.exit()
     s.listen(1)
     return s

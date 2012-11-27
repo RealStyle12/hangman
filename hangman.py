@@ -110,6 +110,7 @@ class Game():
         result += status
         return result
 
+#-------------------------------------------------------------------------------
 def valid_guess(game):
     while True:
         guess = raw_input("Guess a letter: ").lower()

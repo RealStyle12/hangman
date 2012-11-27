@@ -17,10 +17,10 @@ def make_socket():
     try:
         c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     except socket.error, msg:
-        print "Client: Failed to create socket. Error code: " + str(msg[0]) + ", Error message: " + msg[1]
+        print "Client: Failed to create socket. Error code: " + str(msg[0]) \
+                + ", Error message: " + msg[1]
         sys.exit()
     return c
-
 
 def read_msg(data):
     if len(data) == 0:
