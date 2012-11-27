@@ -22,54 +22,56 @@ def make_socket():
         sys.exit()
     return c
 
-def read_msg(data):
-    if len(data) == 0:
-        return (None, data)
+class Messenger:
+    def __init__(self, host, port):
+        self.data = ""
+        self.sock = make_socket()
+        self.sock.connect((host, port))
 
-    EOM_index = data.find(EOM)
-    msg = data[0:EOM_index]
-    data = data[EOM_index + len(EOM):]
-    return (msg, data)
+    def __del__(self):
+        self.sock.close()
+
+    def read(self):
+        if not EOM in self.data:
+            self.data += self.sock.recv(1024)
+
+        msg, self.data = self.data.split(EOM, 1)
+        return msg
+
+    def send(self, msg):
+        self.sock.sendall(msg + EOM)
 
 if __name__ == "__main__":
-    sock = make_socket()
-    sock.connect((HOST, PORT))
-
+    messenger = Messenger(HOST, PORT)
     current_state = WAITING_FOR_WELCOME
-    data = ""
+
     while current_state is not GAME_OVER:
         if current_state is WAITING_FOR_WELCOME:
-            data += sock.recv(1024)
-            welcome, data = read_msg(data)
-            print welcome
+            print messenger.read()
             current_state = WAITING_FOR_BOARD
         elif current_state is WAITING_FOR_BOARD:
-            data += sock.recv(1024)
-            board, data = read_msg(data)
-            print board
+            print messenger.read() 
             current_state = WAITING_FOR_GAME_STATUS
         elif current_state is WAITING_FOR_GAME_STATUS:
-            if not data:
-                data += sock.recv(1024) # blocking issues??
-            gameover, data = read_msg(data)
-            if gameover == "True":
+            msg = messenger.read()
+            if msg == "True":
                 current_state = WAITING_TO_PLAY_AGAIN
-            elif gameover == "False":
+            elif msg == "False":
                 current_state = WAITING_FOR_USER_INPUT
         elif current_state is WAITING_FOR_USER_INPUT:
             guess = raw_input("Guess a letter: ").lower()
             if len(guess) > 1 or guess not in string.lowercase:
                 print "Please guess a letter."
             else:
-                sock.sendall(guess + EOM)
+                messenger.send(guess)
                 current_state = WAITING_FOR_BOARD
         elif current_state is WAITING_TO_PLAY_AGAIN:
             play_again = raw_input("Play again? (y/n): ").lower()
             if "y" in play_again:
                 current_state = WAITING_FOR_WELCOME
-                sock.sendall("play" + EOM)
+                messenger.send("play")
             else:
                 current_state = GAME_OVER
-                sock.sendall("quit" + EOM)
+                messenger.send("quit")
                 print "Thanks for playing!"
-    sock.close()
+
