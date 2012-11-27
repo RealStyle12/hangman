@@ -2,8 +2,8 @@ import socket
 import sys
 from thread import *
 from hangman import Game
+from messenger import Messenger
 
-EOM = "::"
 WAITING_FOR_CONN = 1
 WAITING_FOR_MOVE = 2
 WAITING_TO_PLAY_AGAIN = 3
@@ -24,19 +24,11 @@ def make_socket():
     s.listen(1)
     return s
 
-def read_msg(data):
-    if len(data) == 0:
-        return (None, data)
-
-    EOM_index = data.find(EOM) 
-    msg = data[0:EOM_index]
-    data = data[EOM_index + len(EOM):]
-    return (msg, data)
-
-def init_game(conn):
+def init_game(messenger):
     game = Game()
-    conn.sendall("WELCOME TO HANGMAN" + EOM)
-    conn.sendall(game.game_string() + EOM + str(game.gameover) + EOM)
+    messenger.send("WELCOME TO HANGMAN")
+    messenger.send(game.game_string())
+    messenger.send(str(game.gameover))
     return game
 
 def process_letter(game, letter):
@@ -48,25 +40,25 @@ def process_letter(game, letter):
 
 def client_thread(conn):
     current_state = WAITING_TO_START_GAME
-    data = ""
+    messenger = Messenger(conn)
     while current_state is not GAME_OVER:
         if current_state is WAITING_TO_START_GAME:
-            game = init_game(conn)
+            game = init_game(messenger)
             current_state = WAITING_FOR_MOVE
         elif current_state is WAITING_FOR_MOVE:
-            data += conn.recv(1024)
-            letter, data = read_msg(data)
+            letter = messenger.read()
             reply = process_letter(game, letter)
             if game.gameover:
                 current_state = WAITING_TO_PLAY_AGAIN
-            conn.sendall(reply + EOM + str(game.gameover) + EOM)
+            messenger.send(reply)
+            messenger.send(str(game.gameover))
         elif current_state is WAITING_TO_PLAY_AGAIN:
-            data += conn.recv(1024)
-            play_again, data = read_msg(data)
+            play_again = messenger.read()
             if play_again == "play":
                 current_state = WAITING_TO_START_GAME
             elif play_again == "quit":
                 current_state = GAME_OVER
+
     conn.close()
 
 if __name__ == "__main__":

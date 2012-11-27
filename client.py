@@ -1,11 +1,11 @@
 import socket
 import sys
 import string
+from messenger import Messenger
 
-HOST = sys.argv.pop() if len(sys.argv) == 3 else "127.0.0.1" 
+HOST = sys.argv.pop() if len(sys.argv) == 2 else "127.0.0.1" 
 PORT = 8888
 
-EOM = "::"
 WAITING_FOR_WELCOME = 0
 WAITING_FOR_BOARD = 1
 WAITING_FOR_GAME_STATUS = 2
@@ -22,27 +22,11 @@ def make_socket():
         sys.exit()
     return c
 
-class Messenger:
-    def __init__(self, host, port):
-        self.data = ""
-        self.sock = make_socket()
-        self.sock.connect((host, port))
-
-    def __del__(self):
-        self.sock.close()
-
-    def read(self):
-        if not EOM in self.data:
-            self.data += self.sock.recv(1024)
-
-        msg, self.data = self.data.split(EOM, 1)
-        return msg
-
-    def send(self, msg):
-        self.sock.sendall(msg + EOM)
 
 if __name__ == "__main__":
-    messenger = Messenger(HOST, PORT)
+    sock = make_socket()
+    sock.connect((HOST,PORT))
+    messenger = Messenger(sock)
     current_state = WAITING_FOR_WELCOME
 
     while current_state is not GAME_OVER:
@@ -75,3 +59,4 @@ if __name__ == "__main__":
                 messenger.send("quit")
                 print "Thanks for playing!"
 
+    sock.close()
