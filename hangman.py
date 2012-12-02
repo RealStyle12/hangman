@@ -126,11 +126,11 @@ if __name__ == "__main__":
     while keepGoing:
         game = Game()
         print "WELCOME TO HANGMAN"
-        print game.game_string()
+        print game
         while not game.gameover:
             guess = valid_guess(game)
             game.guess_letter(guess)
-            print game.game_string()
+            print game
         play_again = raw_input("Play again? (y/n): ").lower()
         if "n" in play_again:
             keepGoing = False
