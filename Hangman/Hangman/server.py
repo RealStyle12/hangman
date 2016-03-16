@@ -1,3 +1,9 @@
+'''
+TODO
+-> Create Master class ( Manager of the number of clients and status )
+-> Remove Master functions from server
+-> Remove all console messages
+'''
 import socket
 import sys
 from thread import *

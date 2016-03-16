@@ -5,20 +5,28 @@ class Game():
     MAX_GUESSES = 6
     incorrect = []
     correct = []
-    
+    Change = False
 
 
-    def random_word():
+    def read_words():
         dictionary = open('dictionary.txt', 'r').readlines()
         words = [word.strip() for word in dictionary]
-        return choice(words)
+        return words
 
-    word = random_word()
+    Words = read_words()
+
+    word = choice(Words)
 
     def get_progress(self):
         return "".join([let if let in Game.correct else "_" for let in Game.word])
 
     def __init__(self):
+        if Game.Change == True:
+            Game.incorrect = []
+            Game.correct = []
+            Game.word = choice(Game.Words)
+            Game.Change = False
+
         self.LocalIncorectNumber = 0
         self.progress = self.get_progress()
         self.gameover = False
@@ -39,6 +47,7 @@ class Game():
             return "\nYou lose. The word was %r." % Game.word
         if set(Game.correct) == set(Game.word):
             self.gameover = True
+            Game.Change = True
             return "\nYou won!"
         return "" 
 
